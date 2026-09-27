@@ -47,6 +47,7 @@ namespace ProductApi.Repositories
                 return null;
 
             existingProduct.Name = product.Name;
+            existingProduct.Category = product.Category;
             existingProduct.Description = product.Description;
             existingProduct.Price = product.Price;
             existingProduct.Stock = product.Stock;

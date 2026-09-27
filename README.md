@@ -1,70 +1,90 @@
-# ProductApp - Sistema CRUD de Produtos
+# Mesa & Máquina
 
-Aplicação Full Stack para gerenciamento de produtos com operações completas de CRUD (Create, Read, Update, Delete).
+Catálogo de itens de computação, periféricos e escritório, com cadastro, edição, exclusão, busca por nome/descrição e filtro por categoria.
 
-## 🛠️ Tecnologias
+O painel mostra modelos cadastrados, unidades disponíveis, valor do estoque (preço × quantidade) e itens com até cinco unidades. Os indicadores consideram o catálogo inteiro, independentemente dos filtros.
 
-**Backend:** .NET 8, ASP.NET Core Web API, Entity Framework Core (InMemory), Swagger  
-**Frontend:** Angular 17+, TypeScript, RxJS, Reactive Forms
+## Funcionalidades
 
-## 📋 Funcionalidades
+- Catálogo inicial com notebook, monitor, teclado, mouse, cadeira, organizador, hub USB-C e luminária.
+- Busca por nome ou descrição, sem distinção de acentos, e filtro por categoria.
+- Cadastro e edição em formulário único, com validações e mensagens de erro da API.
+- Exclusão com confirmação e indicação de operação em andamento.
+- Destaques para estoque baixo (1 a 5 unidades) e itens sem estoque.
+- Interface responsiva em português, com preços em reais.
 
-- Listagem de produtos com tabela formatada
-- Cadastro de novos produtos com validações
-- Edição de produtos existentes
-- Exclusão de produtos com confirmação
-- Interface responsiva
+## Estrutura
 
-## 🏗️ Arquitetura
-
-Projeto segue princípios **SOLID** e **Clean Code** com:
-- **Backend:** Repository Pattern, Dependency Injection, RESTful API
-- **Frontend:** Componentes Standalone, Reactive Forms, Services Pattern
-
-```
-product-crud/
-├── ProductApi/              # Backend .NET
-│   ├── Controllers/         # Endpoints da API
-│   ├── Data/               # DbContext
-│   ├── Models/             # Entidades
-│   └── Repositories/       # Camada de dados
-└── product-frontend/        # Frontend Angular
-    └── src/app/
-        ├── components/      # Componentes
-        ├── models/          # Interfaces
-        └── services/        # Comunicação HTTP
+```text
+ProductApp/ProductApi/
+  Contracts/       Entradas validadas e respostas da API
+  Controllers/     Endpoints HTTP
+  Data/            Contexto e catálogo inicial
+  Models/          Entidade de produto
+  Repositories/    Acesso aos dados
+product-frontend/
+  src/app/         Telas, modelos e serviços Angular
+  proxy.conf.json  Encaminhamento da API no desenvolvimento
+scripts/
+  test-api.mjs     Teste de integração HTTP
 ```
 
-## 📦 Pré-requisitos
+## Tecnologias
 
-- .NET SDK 8.0+
-- Node.js 18+
-- Angular CLI: `npm install -g @angular/cli`
+- API: .NET 8, ASP.NET Core, Entity Framework Core InMemory e Swagger.
+- Interface: Angular 20.3, TypeScript e formulários reativos tipados.
 
-## 🚀 Instalação
+## Executar localmente
 
-### Backend
-```bash
-cd ProductApi
-dotnet restore
-dotnet run
+Pré-requisitos: SDK .NET 8 ou superior com runtime .NET 8, Node.js 22.12+ (ou 24) e npm.
+
+Na raiz:
+```sh
+dotnet run --project ProductApp/ProductApi --launch-profile http
 ```
-**Acesse:** `http://localhost:7224` | **Swagger:** `http://localhost:7224/swagger`
+API: http://localhost:5127/api/products · Swagger: http://localhost:5127/swagger
 
-### Frontend
-```bash
+Em outro terminal:
+```sh
 cd product-frontend
-npm install
-ng serve
+npm ci
+npm start
 ```
-**Acesse:** `http://localhost:4200`
+Interface: http://localhost:4200
 
-## 📡 API Endpoints
+O frontend usa a rota relativa /api/products. No desenvolvimento, proxy.conf.json encaminha /api para http://localhost:5127. Reinicie o servidor Angular depois de alterar o proxy. Em produção, configure o servidor web para encaminhar /api à API e servir index.html para as rotas da interface. O token PRODUCT_API_URL permite substituir a URL por injeção de dependência.
 
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| GET | `/api/products` | Lista todos |
-| GET | `/api/products/{id}` | Busca por ID |
-| POST | `/api/products` | Cria novo |
-| PUT | `/api/products/{id}` | Atualiza |
-| DELETE | `/api/products/{id}` | Remove |
+## Contrato da API
+
+| Método | Rota | Operação |
+| --- | --- | --- |
+| GET | `/api/products` | Listar itens |
+| GET | `/api/products/{id}` | Consultar item |
+| POST | `/api/products` | Cadastrar item |
+| PUT | `/api/products/{id}` | Atualizar item |
+| DELETE | `/api/products/{id}` | Excluir item |
+
+Cadastro e atualização recebem:
+```json
+{
+  "name": "Monitor IPS 27",
+  "description": "Tela QHD com ajuste de altura.",
+  "category": "Computação",
+  "price": 1590,
+  "stock": 12
+}
+```
+Categorias: Computação, Periféricos, Escritório. Nome: até 200 caracteres; descrição: até 500; preço: de 0,01 a 999999999,99; estoque: inteiro de 0 a 2147483647. Todos são obrigatórios. ID e data de criação são controlados pelo servidor. A resposta inclui id e createdAt (texto ISO 8601 em UTC). Erros usam ProblemDetails/ValidationProblemDetails.
+
+## Limites
+
+O banco permanece em memória: os dados são reiniciados com oito itens de exemplo quando a API reinicia. Não há autenticação nem histórico de movimentações. A quantidade em estoque é editada diretamente.
+
+## Verificação
+
+```sh
+dotnet build ProductApp/ProductApi/ProductApi.csproj
+cd product-frontend
+npm run build
+```
+Com a API em execução, rode `node scripts/test-api.mjs` na raiz para verificar CRUD, validações e campos controlados pelo servidor. O teste cria e remove apenas seu próprio item. A variável `API_URL` permite apontar para outro ambiente de teste.

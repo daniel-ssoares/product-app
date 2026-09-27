@@ -2,6 +2,7 @@
 
 public class Product
 {
+    public string Category { get; set; } = "Escritório";
     public int Id { get; set; }
 
     [Required(ErrorMessage = "Nome é obrigatório")]

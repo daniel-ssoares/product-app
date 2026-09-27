@@ -1,53 +1,44 @@
-
-<div class="container">
-  <div class="header">
-    <h1>Gestão de Produtos</h1>
-    <button class="btn-primary" (click)="navigateToCreate()">
-      + Novo Produto
-    </button>
-  </div>
-
-  <div *ngIf="loading" class="loading">
-    Carregando produtos...
-  </div>
-
-  <div *ngIf="error" class="error">
-    {{ error }}
-  </div>
-
-  <div *ngIf="!loading && !error">
-    <div *ngIf="products.length === 0" class="empty-state">
-      Nenhum produto cadastrado
+<section class="page-heading">
+  <div><p class="eyebrow">SEU ESPAÇO, BEM EQUIPADO</p><h1>Inventário</h1><p class="muted">Tecnologia e escritório. Tudo em um só lugar.</p></div>
+  <a routerLink="/products/create" class="button primary">＋ Adicionar item</a>
+</section>
+@if (error) { <div class="error" role="alert">{{ error }} <button (click)="loadProducts()">Tentar novamente</button></div> }
+@if (loading) {
+  <div class="empty-state" role="status">Carregando seu inventário…</div>
+} @else {
+  <section class="stats" aria-label="Resumo do inventário">
+    <article><span>Itens no catálogo</span><strong>{{ products.length }}</strong><small>Modelos cadastrados</small></article>
+    <article><span>Unidades disponíveis</span><strong>{{ totalUnits }}</strong><small>Prontas para a rotina</small></article>
+    <article><span>Valor em estoque</span><strong>{{ stockValue | currency:'BRL' }}</strong><small>Preço × quantidade</small></article>
+    <article class="attention"><span>Precisam de atenção</span><strong>{{ lowStock }}</strong><small>Itens com até 5 unidades</small></article>
+  </section>
+  <section class="panel">
+    <div class="catalog-heading"><div><h2>Catálogo de itens</h2><p class="muted">Uma boa rotina começa com as ferramentas certas.</p></div><span class="count">{{ filteredProducts.length }} itens</span></div>
+    <div class="filters">
+      <label class="search"><span class="sr-only">Buscar no catálogo</span><input type="search" [(ngModel)]="query" placeholder="Buscar por nome ou descrição…"></label>
+      <label><span class="sr-only">Categoria</span><select [(ngModel)]="category"><option value="">Todas as categorias</option>@for (item of categories; track item) { <option [value]="item">{{ item }}</option> }</select></label>
     </div>
-
-    <table *ngIf="products.length > 0" class="products-table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Nome</th>
-          <th>Descrição</th>
-          <th>Preço</th>
-          <th>Estoque</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let product of products">
-          <td>{{ product.id }}</td>
-          <td>{{ product.name }}</td>
-          <td>{{ product.description }}</td>
-          <td>{{ product.price | currency:'BRL' }}</td>
-          <td>{{ product.stock }}</td>
-          <td class="actions">
-            <button class="btn-edit" (click)="editProduct(product.id)">
-              Editar
-            </button>
-            <button class="btn-delete" (click)="deleteProduct(product.id)">
-              Excluir
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    @if (filteredProducts.length) {
+      <div class="table-scroll"><table>
+        <thead><tr><th>Item</th><th>Categoria</th><th>Preço unitário</th><th>Estoque</th><th><span class="sr-only">Ações</span></th></tr></thead>
+        <tbody>@for (product of filteredProducts; track product.id) {
+          <tr>
+            <td><div class="item-cell"><span class="item-icon" aria-hidden="true">{{ product.category === 'Computação' ? '▣' : product.category === 'Periféricos' ? '⌘' : '▤' }}</span><div><strong>{{ product.name }}</strong><p class="description">{{ product.description }}</p></div></div></td>
+            <td><span class="category-tag">{{ product.category }}</span></td>
+            <td class="price">{{ product.price | currency:'BRL' }}</td>
+            <td><span class="stock-tag" [class.low]="product.stock > 0 && product.stock <= 5" [class.out]="product.stock === 0">{{ product.stock === 0 ? 'Sem estoque' : product.stock + ' disponíveis' }}</span></td>
+            <td class="actions"><a [routerLink]="['/products/edit', product.id]" [attr.aria-label]="'Editar ' + product.name">Editar</a><button class="danger-link" (click)="pendingDelete = product" [attr.aria-label]="'Excluir ' + product.name">Excluir</button></td>
+          </tr>
+        }</tbody>
+      </table></div>
+    } @else {
+      <div class="empty-state"><h3>{{ products.length ? 'Nenhum item encontrado' : 'Seu próximo espaço começa aqui' }}</h3><p>{{ products.length ? 'Experimente outro termo ou categoria.' : 'Adicione o primeiro item ao inventário.' }}</p></div>
+    }
+  </section>
+}
+@if (pendingDelete; as item) {
+  <div class="delete-bar" role="region" aria-label="Confirmação de exclusão">
+    <div><strong>Excluir {{ item.name }}?</strong><p>O item será removido do catálogo.</p></div>
+    <div class="actions"><button (click)="pendingDelete = null" [disabled]="deleting">Cancelar</button><button class="danger" (click)="confirmDelete()" [disabled]="deleting">{{ deleting ? 'Excluindo…' : 'Confirmar exclusão' }}</button></div>
   </div>
-</div>
+}

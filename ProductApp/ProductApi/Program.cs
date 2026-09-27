@@ -5,6 +5,7 @@ using ProductApi.Repositories;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -24,6 +25,9 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+app.UseExceptionHandler(errorApp => errorApp.Run(async context =>
+    await Results.Problem(statusCode: 500, title: "Não foi possível concluir a operação",
+        detail: "Ocorreu um erro interno. Tente novamente.").ExecuteAsync(context)));
 
 using (var scope = app.Services.CreateScope())
 {

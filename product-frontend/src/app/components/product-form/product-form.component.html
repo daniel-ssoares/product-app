@@ -1,85 +1,17 @@
-<div class="container">
-  <h1>{{ isEditMode ? 'Editar Produto' : 'Novo Produto' }}</h1>
-
-  <div *ngIf="error" class="error">
-    {{ error }}
-  </div>
-
-  <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="product-form">
-    
-    <!-- Nome -->
-    <div class="form-group">
-      <label for="name">Nome *</label>
-      <input 
-        type="text" 
-        id="name" 
-        formControlName="name"
-        class="form-control"
-        [class.invalid]="name?.invalid && name?.touched">
-      <div *ngIf="name?.invalid && name?.touched" class="error-message">
-        <span *ngIf="name?.errors?.['required']">Nome é obrigatório</span>
-        <span *ngIf="name?.errors?.['maxlength']">Máximo de 200 caracteres</span>
-      </div>
+<a routerLink="/products" class="back-link">← Voltar ao inventário</a>
+<section class="page-heading"><div><p class="eyebrow">CADA DETALHE ORGANIZADO</p><h1>{{ isEditMode ? 'Editar item' : 'Novo item' }}</h1><p class="muted">As ferramentas certas merecem um lugar no seu catálogo.</p></div></section>
+@if (error) { <div class="error" role="alert">{{ error }}</div> }
+@if (loading) { <p role="status">Carregando os detalhes do item…</p> }
+<div class="form-layout">
+  <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="panel form-panel">
+    <h2>Informações do item</h2><p class="muted">Todos os campos são obrigatórios.</p>
+    <div class="form-group"><label for="name">Nome do item</label><input id="name" formControlName="name" placeholder="Ex.: Monitor IPS 27" maxlength="200" [attr.aria-invalid]="!!fieldError('name')" aria-describedby="name-error"><small id="name-error" class="error-message">{{ fieldError('name') }}</small></div>
+    <div class="form-group"><label for="category">Categoria</label><select id="category" formControlName="category">@for (category of categories; track category) { <option [value]="category">{{ category }}</option> }</select></div>
+    <div class="form-group"><label for="description">Descrição</label><textarea id="description" formControlName="description" rows="4" maxlength="500" placeholder="Especificações, materiais e o que torna este item útil." [attr.aria-invalid]="!!fieldError('description')" aria-describedby="description-error"></textarea><small id="description-error" class="error-message">{{ fieldError('description') }}</small></div>
+    <div class="form-row">
+      <div class="form-group"><label for="price">Preço unitário (R$)</label><input id="price" type="number" formControlName="price" min="0.01" max="999999999.99" step="0.01" [attr.aria-invalid]="!!fieldError('price')" aria-describedby="price-error"><small id="price-error" class="error-message">{{ fieldError('price') }}</small></div>
+      <div class="form-group"><label for="stock">Unidades em estoque</label><input id="stock" type="number" formControlName="stock" min="0" max="2147483647" step="1" [attr.aria-invalid]="!!fieldError('stock')" aria-describedby="stock-error"><small id="stock-error" class="error-message">{{ fieldError('stock') }}</small></div>
     </div>
-
-    <!-- Descrição -->
-    <div class="form-group">
-      <label for="description">Descrição *</label>
-      <textarea 
-        id="description" 
-        formControlName="description"
-        class="form-control"
-        rows="4"
-        [class.invalid]="description?.invalid && description?.touched">
-      </textarea>
-      <div *ngIf="description?.invalid && description?.touched" class="error-message">
-        <span *ngIf="description?.errors?.['required']">Descrição é obrigatória</span>
-        <span *ngIf="description?.errors?.['maxlength']">Máximo de 500 caracteres</span>
-      </div>
-    </div>
-
-    <!-- Preço -->
-    <div class="form-group">
-      <label for="price">Preço (R$) *</label>
-      <input 
-        type="number" 
-        id="price" 
-        formControlName="price"
-        class="form-control"
-        step="0.01"
-        [class.invalid]="price?.invalid && price?.touched">
-      <div *ngIf="price?.invalid && price?.touched" class="error-message">
-        <span *ngIf="price?.errors?.['required']">Preço é obrigatório</span>
-        <span *ngIf="price?.errors?.['min']">Preço deve ser maior que zero</span>
-      </div>
-    </div>
-
-    <!-- Estoque -->
-    <div class="form-group">
-      <label for="stock">Estoque *</label>
-      <input 
-        type="number" 
-        id="stock" 
-        formControlName="stock"
-        class="form-control"
-        [class.invalid]="stock?.invalid && stock?.touched">
-      <div *ngIf="stock?.invalid && stock?.touched" class="error-message">
-        <span *ngIf="stock?.errors?.['required']">Estoque é obrigatório</span>
-        <span *ngIf="stock?.errors?.['min']">Estoque não pode ser negativo</span>
-      </div>
-    </div>
-
-    <!-- Botões -->
-    <div class="form-actions">
-      <button type="button" class="btn-secondary" (click)="cancel()">
-        Cancelar
-      </button>
-      <button 
-        type="submit" 
-        class="btn-primary" 
-        [disabled]="loading || productForm.invalid">
-        {{ loading ? 'Salvando...' : 'Salvar' }}
-      </button>
-    </div>
+    <div class="form-actions"><a routerLink="/products" class="button">Voltar</a><button class="primary" type="submit" [disabled]="loading || saving || loadFailed">{{ saving ? 'Salvando…' : 'Salvar item' }}</button></div>
   </form>
 </div>
